@@ -1,6 +1,8 @@
 const taskTemplate = `
   <div class="task">
     <p class="task-title">{title}</p>
+    <i class="delete-task fa fa-trash icon-red"></i>
+    <div class="description">{description}</div>
     <div class="task-details">
       <div class="task-info">
         <div class="avatar"></div>
@@ -39,8 +41,12 @@ const tasks = {
   done: []
 };
 
-const backlog = document.querySelector(".board section:first-child .tasks");
+const backlogDomElement = document.querySelector(".board section:first-child .tasks");
+const selected = document.querySelector(".board section:nth-child(2) .tasks");
+const inProgress = document.querySelector(".board section:nth-child(3) .tasks");
+const done = document.querySelector(".board section:nth-child(4) .tasks");
 const addTaskButton = document.getElementById("addTask").addEventListener("click", showForm);
+console.log(done);
 
 function compileToNode(domString) {
   const div = document.createElement("div");
@@ -49,26 +55,122 @@ function compileToNode(domString) {
   return div.firstElementChild;
 }
 
-function compileTaskTemplate(title, tag, taskType, priority, template) {
+function compileTaskTemplate(title, tag, taskType, priority, description, template) {
   const compiledTemplate = template
     .replace("{title}", title)
+    .replace("{description}", description)
     .replace("{tag}", tag)
     .replace("{taskType}", getTaskTypeIcon(taskType))
     .replace("{priority}", getPriorityIcon(priority));
   return compileToNode(compiledTemplate);
 }
 
-function addTask(title, taskType, priority) {
+function addTask(title, taskType, priority, description, param) {
   const newTask = {
     title: title,
     taskType: taskType,
     priority: priority,
+    description: description,
     tag: getId(taskType)
+  };
+
+  tasks[param].push(newTask);
+  const task = compileTaskTemplate(newTask.title, newTask.tag, newTask.taskType, newTask.priority, newTask.description, taskTemplate);
+  const bin = task.querySelector('.delete-task');
+  console.log(bin);
+  bin.addEventListener("click", removeCard);
+
+  task.addEventListener("click", myFunc);
+  function myFunc() {
+    localStorage.setItem("profile", JSON.stringify(newTask));
+    window.open("assets/new page/index2.html");
   }
-  tasks.backlog.push(newTask);
-  const task = compileTaskTemplate(newTask.title, newTask.tag, newTask.taskType, newTask.priority, taskTemplate);
-  backlog.appendChild(task);
+  if (param == 'backlog') {
+    backlogDomElement.appendChild(task);
+  }
+  else if (param == 'inProgress') {
+    inProgress.appendChild(task);
+  }
+  else if (param == 'done') {
+    done.appendChild(task);
+  }
+
 }
+
+(function uploadCard() {
+  fetch('https://605dc9029386d200171bb3c2.mockapi.io/task')
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      data.map(user => {
+        if (user.status == 'backlog') {
+          addTask(user.title, user.type, user.priority, user.description, 'backlog');
+        }
+        else if (user.status == 'inprogress') {
+          addTask(user.title, user.type, user.priority, user.description, 'inProgress');
+
+        }
+        else if (user.status == 'done') {
+          addTask(user.title, user.type, user.priority, user.description, 'done');
+        }
+        else {
+          addTask(user.title, user.type, user.priority, user.description, 'selected');
+        }
+
+      })
+    })
+})()
+
+// function fade(event) {
+//   var op = 1;  // initial opacity
+//   var timer = setInterval(function () {
+//       if (op <= 0.1){
+//           clearInterval(timer);
+//           element.style.display = 'none';
+//       }
+//       element.style.opacity = op;
+//       element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+//       op -= op * 0.1;
+//   }, 50);
+// }
+function removeCard(event) {
+  event.stopPropagation();
+  this.parentElement.remove();
+  // fadeOut(this.parentElement, 2000);
+  // this.parentElement.classList.add("fadeOut");
+  // const elem = this.parentElement;
+  // this.parentElement.style.display = "none";
+  // setTimeout(function Out() {
+  //   elem.style.display = "none";
+  // }, 3100);
+  event.target.removeEventListener("click", removeCard);
+}
+/* dark mode*/
+const checkDark = document.getElementById("checkbox");
+console.log(checkDark);
+checkDark.addEventListener("click", darkMode);
+
+function darkMode() {
+  const element = document.body;
+  element.classList.toggle("dark-mode");
+  // const elementSection = document.getElementsByTagName("section");
+  // const arraySection = Array.prototype.slice.call(elementSection);
+  // for (const i in arraySection) {
+  //   arraySection[i].classList.toggle("dark-mode1");
+  // }
+  // const taskPart = document.querySelectorAll(".task")
+  // const taskArray = Array.prototype.slice.call(taskPart);
+  // for (const i in taskArray){
+  //   taskArray[i].classList.toggle("dark-mode2");
+  // }
+  // const navDark = document.getElementById("aside");
+  // navDark.classList.toggle("nav-dark");
+
+
+}
+
+
+
 
 
 function showForm() {
@@ -90,7 +192,8 @@ function showForm() {
     const title = target.querySelector('[name="title"]').value;
     const type = target.querySelector('[name="type"]').value;
     const priority = target.querySelector('[name="priority"]').value;
-    addTask(title, type, priority);
+    const description = target.querySelector('[name="description"]').value;
+    addTask(title, type, priority, description, 'backlog');
     closeAddTaskForm();
   }
 
@@ -139,6 +242,8 @@ function showAddForm() {
         <form id="addTaskForm" action="" method="POST">
           <label for="title">Title</label>
           <input type="text" name="title" id="title" required>
+          <label for="description">Description</label>
+          <input type="text" name="description" id="description">
 
           <label for="type">Type</label>
           <select name="type" id="type" required>
@@ -147,8 +252,6 @@ function showAddForm() {
             <option value="improvement">Improvement</option>
             <option value="bug">Bug</option>
           </select>
-
-
           <label for="priority">Priority</label>
           <select name="priority" id="priority" required>
             <option disabled selected value></option>
@@ -157,6 +260,7 @@ function showAddForm() {
             <option value="high">HIGH</option>
             <option value="urgent">URGENT</option>
           </select>
+          
           <button class="btn-add" name="submit" type="submit">Add task</button>
         </form>
       </div>
@@ -165,3 +269,16 @@ function showAddForm() {
 
   return compileToNode(formString);
 }
+
+// tasks.addEventListener("click",openTab);
+// function openTab(){
+//   window.open("https://www.w3schools.com");
+// }
+// console.log(tasks);
+// const naty = document.getElementById("naty");
+// naty.addEventListener("click",func1);
+// function func1(){
+//   window.open("https://www.w3schools.com");
+
+// }
+
