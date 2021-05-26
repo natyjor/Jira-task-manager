@@ -35,30 +35,6 @@ aside {
   width: 6%;
   height: 100%;
   
-  /* position: fixed;
-	  top: 0;
-	  right: 0;
-	  bottom: 0;
-	  left: 0;
-  z-index: 0; */
- 
-  /* background-color: #343A40;
-  color:#d6d9dc;
-  width:20%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position:absolute;
-  /*transform:translateX(-100%) ;*/
-  /* transition: left 0.2s;
-  position: fixed;
-	  top: 0;
-	  right: 0;
-	  bottom: 0;
-	  left: 0;
-  z-index: 0;
-  left:-20%; */
 } 
 
 nav .actions {
@@ -418,15 +394,11 @@ body.dark-mode aside{
   background-color:rgba(0, 0, 0, 0.7)
 
 }
-/* .dark-mode1{
-  background-color:#1c1e21;
+
+.task.dragging{
+  opacity: .5;
 }
-.dark-mode2{
-  background-color:rgba(0, 0, 0, 0.7);
-}
-.nav-dark{
-  background-color:rgba(0, 0, 0, 0.7);
-} */
+
 
 
 

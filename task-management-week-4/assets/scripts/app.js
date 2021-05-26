@@ -1,5 +1,5 @@
 const taskTemplate = `
-  <div class="task">
+  <div class="task" draggable="true">
     <p class="task-title">{title}</p>
     <i class="delete-task fa fa-trash icon-red"></i>
     <div class="description">{description}</div>
@@ -77,7 +77,7 @@ function addTask(title, taskType, priority, description, param) {
   tasks[param].push(newTask);
   const task = compileTaskTemplate(newTask.title, newTask.tag, newTask.taskType, newTask.priority, newTask.description, taskTemplate);
   const bin = task.querySelector('.delete-task');
-  console.log(bin);
+
   bin.addEventListener("click", removeCard);
 
   task.addEventListener("click", myFunc);
@@ -94,15 +94,17 @@ function addTask(title, taskType, priority, description, param) {
   else if (param == 'done') {
     done.appendChild(task);
   }
+  dragAndDrop();
 
 }
 
-(function uploadCard() {
+(function fetchCard() {
   fetch('https://605dc9029386d200171bb3c2.mockapi.io/task')
     .then(response => response.json())
     .then(data => {
       console.log(data);
       data.map(user => {
+
         if (user.status == 'backlog') {
           addTask(user.title, user.type, user.priority, user.description, 'backlog');
         }
@@ -117,32 +119,41 @@ function addTask(title, taskType, priority, description, param) {
           addTask(user.title, user.type, user.priority, user.description, 'selected');
         }
 
+
       })
+      dragAndDrop();
     })
 })()
 
-// function fade(event) {
-//   var op = 1;  // initial opacity
-//   var timer = setInterval(function () {
-//       if (op <= 0.1){
-//           clearInterval(timer);
-//           element.style.display = 'none';
-//       }
-//       element.style.opacity = op;
-//       element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-//       op -= op * 0.1;
-//   }, 50);
-// }
+function dragAndDrop() {
+  const draggables = document.querySelectorAll(".task");
+  console.log(draggables);
+  const containers = document.querySelectorAll('.section');
+  console.log(containers);
+  draggables.forEach(draggable => {
+    draggable.addEventListener('dragstart', () => {
+      draggable.classList.add('dragging');
+    })
+    draggable.addEventListener('dragend', () => {
+      draggable.classList.remove('dragging');
+    })
+  })
+  containers.forEach(container => {
+    container.addEventListener('dragover', e => {
+      e.preventDefault();
+      console.log('dragover container');
+      const draggable = document.querySelector('.dragging');
+      container.appendChild(draggable);
+    })
+  })
+
+}
+
+
 function removeCard(event) {
   event.stopPropagation();
   this.parentElement.remove();
-  // fadeOut(this.parentElement, 2000);
-  // this.parentElement.classList.add("fadeOut");
-  // const elem = this.parentElement;
-  // this.parentElement.style.display = "none";
-  // setTimeout(function Out() {
-  //   elem.style.display = "none";
-  // }, 3100);
+  
   event.target.removeEventListener("click", removeCard);
 }
 /* dark mode*/
@@ -153,21 +164,10 @@ checkDark.addEventListener("click", darkMode);
 function darkMode() {
   const element = document.body;
   element.classList.toggle("dark-mode");
-  // const elementSection = document.getElementsByTagName("section");
-  // const arraySection = Array.prototype.slice.call(elementSection);
-  // for (const i in arraySection) {
-  //   arraySection[i].classList.toggle("dark-mode1");
-  // }
-  // const taskPart = document.querySelectorAll(".task")
-  // const taskArray = Array.prototype.slice.call(taskPart);
-  // for (const i in taskArray){
-  //   taskArray[i].classList.toggle("dark-mode2");
-  // }
-  // const navDark = document.getElementById("aside");
-  // navDark.classList.toggle("nav-dark");
-
+  
 
 }
+
 
 
 
@@ -270,15 +270,4 @@ function showAddForm() {
   return compileToNode(formString);
 }
 
-// tasks.addEventListener("click",openTab);
-// function openTab(){
-//   window.open("https://www.w3schools.com");
-// }
-// console.log(tasks);
-// const naty = document.getElementById("naty");
-// naty.addEventListener("click",func1);
-// function func1(){
-//   window.open("https://www.w3schools.com");
-
-// }
 
